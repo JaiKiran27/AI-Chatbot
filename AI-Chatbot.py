@@ -1,5 +1,9 @@
+from fastapi import FastAPI, Request
 import subprocess
 import json
+import uvicorn
+
+app = FastAPI()
 
 # Initialize the Gemini API key
 GEMINI_API_KEY = 'AIzaSyBwIJyHSM0NZPyWRAMVt4I-xUl-axmXr1g'
@@ -27,15 +31,14 @@ def generate_response(prompt):
     else:
         return "Sorry, I couldn't generate a response."
 
-def main():
-    print("Welcome to the AI Chatbot!")
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() in ['exit', 'quit']:
-            print("Goodbye!")
-            break
-        response = generate_response(user_input)
-        print("Bot:", response)
+@app.post("/generate-response")
+async def generate_response_endpoint(request: Request):
+    data = await request.json()
+    prompt = data.get("prompt")
+    if not prompt:
+        return {"error": "Prompt is required"}
+    response = generate_response(prompt)
+    return {"response": response}
 
 if __name__ == "__main__":
-    main()
+    uvicorn.run(app, host="127.0.0.1", port=8000)
